@@ -1,0 +1,21 @@
+{
+    "name": "megaads/trapman",
+    "description": "This package use for catching laravel exception and send mail alert.",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "MegaAds Inc",
+            "email": "info@megaads.vn"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {},
+    "autoload": {
+        "classmap": [
+            "src"
+        ],
+        "psr-4": {
+            "Megaads\\Trapman\\": "src/"
+        }
+    }
+}
