@@ -39,4 +39,8 @@ class TrapmanHandler implements HandlerInterface
             return $e instanceof $type;
         }));
     }
+
+    public function renderForConsole($output, Exception $e){
+        
+    }
 }
