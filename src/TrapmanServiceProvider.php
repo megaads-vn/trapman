@@ -2,6 +2,7 @@
 namespace Megaads\Trapman;
 
 use Illuminate\Support\ServiceProvider;
+use Megaads\Trapman\Service\SendEmailService;
 
 class TrapmanServiceProvider extends ServiceProvider
 {
@@ -12,7 +13,9 @@ class TrapmanServiceProvider extends ServiceProvider
 
     public function register()
     {
-        
+        $this->app->singleton('sendEmailService', function() {
+            return new SendEmailService();
+        });
     }
 
 }

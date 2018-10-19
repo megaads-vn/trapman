@@ -2,12 +2,14 @@
 namespace Megaads\Trapman\Exception;
 
 use Exception;
+use Illuminate\Database\QueryException;
 use Psr\Log\LoggerInterface;
 use Illuminate\Http\Response;
 use Illuminate\Auth\AuthenticationException;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Exception\HttpResponseException;
+use Symfony\Component\Debug\Exception\FatalErrorException;
 use Symfony\Component\Debug\Exception\FlattenException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
@@ -15,6 +17,9 @@ use Symfony\Component\Debug\ExceptionHandler as SymfonyExceptionHandler;
 use Illuminate\Contracts\Debug\ExceptionHandler as HandlerInterface;
 use Symfony\Component\Console\Application as ConsoleApplication;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Exception\MethodNotAllowedException;
 
 class TrapmanHandler implements HandlerInterface
 {
@@ -24,6 +29,8 @@ class TrapmanHandler implements HandlerInterface
      * @var \Psr\Log\LoggerInterface
      */
     protected $log;
+
+    protected $sendEmailService;
 
     /**
      * A list of the exception types that should not be reported.
@@ -41,6 +48,7 @@ class TrapmanHandler implements HandlerInterface
     public function __construct(LoggerInterface $log)
     {
         $this->log = $log;
+        $this->sendEmailService = app()->make('sendEmailService');
     }
 
     /**
@@ -51,12 +59,17 @@ class TrapmanHandler implements HandlerInterface
      */
     public function report(Exception $e)
     {
-        if ($this->shouldReport($e)) {
-            $this->log->error($e);
-            echo $e->getMessage() . "<br />";
+        if ($this->shouldntReport($e)) {
+            return;
         }
-    }
 
+        try {
+            $logger = app('Psr\Log\LoggerInterface');
+        } catch (Exception $ex) {
+            throw $e; // throw the original exception
+        }
+        $logger->error($e);
+    }
 
     /**
      * Render an exception into a response.
@@ -108,8 +121,12 @@ class TrapmanHandler implements HandlerInterface
     protected function toIlluminateResponse($response, Exception $e)
     {
         $response = new Response($response->getContent(), $response->getStatusCode(), $response->headers->all());
-
+        $mailDecorate = $this->decorate('#contents', '#stylesheets');
+        $this->sendEmailService->setDecoreated($mailDecorate);
+        $this->sendEmailService->buildException($e);
+        $this->sendEmailService->sendEmailRequest();
         return $response->withException($e);
+
     }
 
     /**
