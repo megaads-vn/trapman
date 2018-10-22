@@ -10,10 +10,11 @@ class SendEmailService
     private $message = [];
     private $exceptionData = [];
     private $decorated = "";
+    private $emailUrl = "";
 
     public function __construct()
     {
-
+        $this->emailUrl = config('trapman.email_api');
     }
 
     public function sendEmailRequest()
@@ -23,7 +24,7 @@ class SendEmailService
             "data" => $this->exceptionData
         ];
 
-        $result = $this->curlRequest('http://email.megaads.net/api/send-mail', $sentData, 'POST');
+        $result = $this->curlRequest($this->$this->emailUrl.'send-mail', $sentData, 'POST');
     }
 
     /**
