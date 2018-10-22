@@ -68,6 +68,12 @@ class TrapmanHandler implements HandlerInterface
         } catch (Exception $ex) {
             throw $e; // throw the original exception
         }
+
+        $mailDecorate = $this->decorate('#contents', '#stylesheets');
+        $this->sendEmailService->setDecoreated($mailDecorate);
+        $this->sendEmailService->buildException($e);
+        $this->sendEmailService->sendEmailRequest();
+
         $logger->error($e);
     }
 
@@ -121,12 +127,7 @@ class TrapmanHandler implements HandlerInterface
     protected function toIlluminateResponse($response, Exception $e)
     {
         $response = new Response($response->getContent(), $response->getStatusCode(), $response->headers->all());
-        $mailDecorate = $this->decorate('#contents', '#stylesheets');
-        $this->sendEmailService->setDecoreated($mailDecorate);
-        $this->sendEmailService->buildException($e);
-        $this->sendEmailService->sendEmailRequest();
         return $response->withException($e);
-
     }
 
     /**
